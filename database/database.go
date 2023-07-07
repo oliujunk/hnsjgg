@@ -15,20 +15,23 @@ var (
 )
 
 type Device struct {
-	ID               int64     `xorm:"id pk" json:"id"`
-	CreateTime       time.Time `json:"createTime"`
-	UpdateTime       time.Time `json:"updateTime"`
-	Sn               string    `xorm:"sn" json:"sn"`
-	Number           int       `json:"number"`
-	AreaCode         int64     `json:"areaCode"`
-	Town             string    `json:"town"`
-	Village          string    `json:"village"`
-	Longitude        float64   `json:"longitude"`
-	Latitude         float64   `json:"latitude"`
-	RegisterNumber   string    `json:"registerNumber"`
-	Registered       bool      `json:"registered"`
-	UploadedWater    uint64    `json:"uploadedWater"`
-	UploadedElectric uint64    `json:"uploadedElectric"`
+	ID                 int64     `xorm:"id pk" json:"id"`
+	CreateTime         time.Time `json:"createTime"`
+	UpdateTime         time.Time `json:"updateTime"`
+	Sn                 string    `xorm:"sn" json:"sn"`
+	Number             int       `json:"number"`
+	AreaCode           int64     `json:"areaCode"`
+	Town               string    `json:"town"`
+	Village            string    `json:"village"`
+	Longitude          float64   `json:"longitude"`
+	Latitude           float64   `json:"latitude"`
+	RegisterNumber     string    `json:"registerNumber"`
+	Registered         bool      `json:"registered"`
+	UploadedWater      uint64    `json:"uploadedWater"`
+	UploadedElectric   uint64    `json:"uploadedElectric"`
+	Name               string    `xorm:"name" json:"name"`
+	CardRegisterNumber string    `json:"cardRegisterNumber"`
+	UsedWater          uint64    `json:"usedWater"`
 }
 
 type Card struct {

@@ -103,6 +103,9 @@ type StatefulDevice struct {
 	Electric    uint64
 	WaterSum    uint64
 	ElectricSum uint64
+	Uploaded    bool
+	StartTime   time.Time
+	StopTime    time.Time
 }
 
 func NewStatefulDevice(device *database.Device) (*StatefulDevice, error) {
@@ -113,7 +116,8 @@ func NewStatefulDevice(device *database.Device) (*StatefulDevice, error) {
 	}
 
 	//conn, err := net.Dial("tcp", "127.0.0.1:8888")
-	conn, err := net.Dial("tcp", "newreceive.hnsjgg.com:9999")
+	//conn, err := net.Dial("tcp", "newreceive.hnsjgg.com:9999") // 正式平台
+	conn, err := net.Dial("tcp", "test.hnlyxxgc.com:9988") // 测试平台
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -281,9 +285,9 @@ func dlt645RecvProcess(buf []byte, statefulDevice *StatefulDevice) {
 		break
 
 	case 0x90:
-
-		statefulDevice.Device.UploadedWater = statefulDevice.WaterSum
-		statefulDevice.Device.UploadedElectric = statefulDevice.ElectricSum
+		statefulDevice.Uploaded = true
+		statefulDevice.Device.UploadedWater = statefulDevice.Device.UploadedWater + statefulDevice.Water
+		statefulDevice.Device.UploadedElectric = statefulDevice.Device.UploadedElectric + statefulDevice.Electric
 		_, err := database.Orm.Id(statefulDevice.Device.ID).AllCols().Update(statefulDevice.Device)
 		if err != nil {
 			log.Println(err)
@@ -506,7 +510,7 @@ func dlt645SearchCard(statefulDevice *StatefulDevice) {
 
 	buf.WriteByte(0x87)
 
-	decodeString, err = hex.DecodeString(statefulDevice.Card.CardRegisterNumber)
+	decodeString, err = hex.DecodeString(statefulDevice.Device.CardRegisterNumber)
 	if err != nil {
 		log.Print(err)
 		return
@@ -556,19 +560,19 @@ func dlt645OpenWell(statefulDevice *StatefulDevice) {
 
 	buf.WriteByte(0x88)
 
-	decodeString, err = hex.DecodeString(statefulDevice.Card.CardRegisterNumber)
+	decodeString, err = hex.DecodeString(statefulDevice.Device.CardRegisterNumber)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 	buf.Write(decodeString)
 
-	buf.WriteByte(byteToBcd(byte(time.Now().Year() - 2000)))
-	buf.WriteByte(byteToBcd(byte(time.Now().Month())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Day())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Hour())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Minute())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Second())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StartTime.Year() - 2000)))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StartTime.Month())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StartTime.Day())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StartTime.Hour())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StartTime.Minute())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StartTime.Second())))
 
 	orderNumber := generateOrderNumber(statefulDevice.OrderCount)
 	statefulDevice.OrderCount++
@@ -626,19 +630,19 @@ func dlt645OpenWellData(statefulDevice *StatefulDevice) {
 
 	buf.WriteByte(0x89)
 
-	decodeString, err = hex.DecodeString(statefulDevice.Card.CardRegisterNumber)
+	decodeString, err = hex.DecodeString(statefulDevice.Device.CardRegisterNumber)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 	buf.Write(decodeString)
 
-	buf.WriteByte(byteToBcd(byte(time.Now().Year() - 2000)))
-	buf.WriteByte(byteToBcd(byte(time.Now().Month())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Day())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Hour())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Minute())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Second())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Year() - 2000)))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Month())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Day())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Hour())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Minute())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Second())))
 
 	buf.WriteByte(byteToBcd(byte(statefulDevice.OrderNumber / 100000000000000 % 100)))
 	buf.WriteByte(byteToBcd(byte(statefulDevice.OrderNumber / 1000000000000 % 100)))
@@ -700,19 +704,19 @@ func dlt645CloseWell(statefulDevice *StatefulDevice) {
 
 	buf.WriteByte(0x90)
 
-	decodeString, err = hex.DecodeString(statefulDevice.Card.CardRegisterNumber)
+	decodeString, err = hex.DecodeString(statefulDevice.Device.CardRegisterNumber)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 	buf.Write(decodeString)
 
-	buf.WriteByte(byteToBcd(byte(time.Now().Year() - 2000)))
-	buf.WriteByte(byteToBcd(byte(time.Now().Month())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Day())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Hour())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Minute())))
-	buf.WriteByte(byteToBcd(byte(time.Now().Second())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Year() - 2000)))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Month())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Day())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Hour())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Minute())))
+	buf.WriteByte(byteToBcd(byte(statefulDevice.StopTime.Second())))
 
 	buf.WriteByte(byteToBcd(byte(statefulDevice.OrderNumber / 100000000000000 % 100)))
 	buf.WriteByte(byteToBcd(byte(statefulDevice.OrderNumber / 1000000000000 % 100)))
